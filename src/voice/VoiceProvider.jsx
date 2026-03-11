@@ -1,4 +1,10 @@
-import React, { createContext, useEffect, useState, useRef } from "react"
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  useRef
+} from "react"
+
 import { useNavigate, useLocation } from "react-router-dom"
 
 import WakeWordEngine from "./WakeWordEngine"
@@ -13,19 +19,28 @@ export default function VoiceProvider({ children, userProfile }) {
 
   const synthRef = useRef(window.speechSynthesis)
 
-  const [voiceActive, setVoiceActive] = useState(false)
-  const [tapCount, setTapCount] = useState(0)
+  const tapCounter = useRef(0)
+  const tapTimer = useRef(null)
+
+  const [voiceActive,setVoiceActive] = useState(false)
+
+  const [commandText,setCommandText] = useState("")
+  const [commandStatus,setCommandStatus] = useState("")
 
   const ttsEnabled = userProfile?.ttsEnabled ?? false
   const voiceEnabled = userProfile?.voiceEnabled ?? false
 
-  const speak = (text) => {
+  /* -------------------------
+     TEXT TO SPEECH
+  ------------------------- */
 
-    if (!ttsEnabled) return
-    if (!text) return
+  const speak = (text)=>{
+
+    if(!ttsEnabled) return
+    if(!text) return
 
     const synth = synthRef.current
-    if (!synth) return
+    if(!synth) return
 
     synth.cancel()
 
@@ -39,105 +54,155 @@ export default function VoiceProvider({ children, userProfile }) {
 
   }
 
-  const stop = () => {
+  const stop = ()=>{
 
     const synth = synthRef.current
-    if (!synth) return
+    if(!synth) return
 
     synth.cancel()
 
   }
 
-  useEffect(() => {
+  /* -------------------------
+     INIT COMMAND SYSTEM
+  ------------------------- */
 
-    const commands = createVoiceCommands(navigate)
+  useEffect(()=>{
+
+    const commands = createVoiceCommands(
+      navigate,
+      setCommandText,
+      setCommandStatus,
+      { speak, stop }
+    )
+
     WakeWordEngine.init(commands)
 
-  }, [navigate])
+  },[navigate])
 
-  useEffect(() => {
+  /* -------------------------
+     WAKE WORD SETTING
+  ------------------------- */
 
-    if (userProfile?.wakeWord) {
+  useEffect(()=>{
+
+    if(userProfile?.wakeWord){
+
       WakeWordEngine.setWakeWord(userProfile.wakeWord)
+
     }
 
-  }, [userProfile])
+  },[userProfile])
 
-  useEffect(() => {
+  /* -------------------------
+     START / STOP LISTENER
+  ------------------------- */
 
-    if (!voiceEnabled) {
+  useEffect(()=>{
+
+    if(!voiceEnabled){
+
       WakeWordEngine.stop()
       return
+
     }
 
-    if (voiceActive) {
+    if(voiceActive){
+
       WakeWordEngine.start()
-    }
-
-    return () => WakeWordEngine.stop()
-
-  }, [voiceActive, voiceEnabled])
-
-  useEffect(() => {
-
-    if (!ttsEnabled) return
-
-    const timeout = setTimeout(() => {
-
-      const mainContent = document.querySelector("main") || document.body
-      if (!mainContent) return
-
-      const text = mainContent.innerText
-      if (text) speak(text.slice(0, 600))
-
-    }, 600)
-
-    return () => clearTimeout(timeout)
-
-  }, [location.pathname])
-
-  useEffect(() => {
-
-    const tapCounter = useRef(0)
-const tapTimer = useRef(null)
-
-useEffect(()=>{
-
-  const handleTap = (e)=>{
-
-    if(e.clientX < 120 && e.clientY < 120){
-
-      tapCounter.current += 1
-
-      if(tapTimer.current){
-        clearTimeout(tapTimer.current)
-      }
-
-      tapTimer.current = setTimeout(()=>{
-        tapCounter.current = 0
-      },1000)
-
-      if(tapCounter.current >= 5){
-
-        setVoiceActive(prev => !prev)
-
-        tapCounter.current = 0
-
-      }
 
     }
 
-  }
+    return ()=>WakeWordEngine.stop()
 
-  window.addEventListener("click",handleTap)
+  },[voiceActive,voiceEnabled])
 
-  return ()=>window.removeEventListener("click",handleTap)
+  /* -------------------------
+     AUTO SCREEN READER
+  ------------------------- */
 
-},[])
+  useEffect(()=>{
 
-  return (
+    if(!ttsEnabled) return
 
-    <VoiceContext.Provider value={{ voiceActive, speak, stop }}>
+    const timeout = setTimeout(()=>{
+
+      const main = document.querySelector("main") || document.body
+
+      if(!main) return
+
+      const text = main.innerText
+
+      if(text){
+
+        speak(text.slice(0,600))
+
+      }
+
+    },700)
+
+    return ()=>clearTimeout(timeout)
+
+  },[location.pathname])
+
+  /* -------------------------
+     5 TAP ACTIVATION
+  ------------------------- */
+
+  useEffect(()=>{
+
+    const handleTap = (e)=>{
+
+      if(e.clientX < 120 && e.clientY < 120){
+
+        tapCounter.current += 1
+
+        if(tapTimer.current){
+          clearTimeout(tapTimer.current)
+        }
+
+        tapTimer.current = setTimeout(()=>{
+
+          tapCounter.current = 0
+
+        },1000)
+
+        if(tapCounter.current >= 5){
+
+          setVoiceActive(prev=>!prev)
+
+          tapCounter.current = 0
+
+        }
+
+      }
+
+    }
+
+    window.addEventListener("click",handleTap)
+
+    return ()=>window.removeEventListener("click",handleTap)
+
+  },[])
+
+  /* -------------------------
+     CONTEXT
+  ------------------------- */
+
+  return(
+
+    <VoiceContext.Provider
+      value={{
+
+        voiceActive,
+        commandText,
+        commandStatus,
+
+        speak,
+        stop
+
+      }}
+    >
 
       {children}
 
