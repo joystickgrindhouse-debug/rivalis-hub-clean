@@ -3,7 +3,6 @@ let commands = []
 let wakeWord = "rivalis"
 
 let isRunning = false
-let supported = false
 
 function normalize(text){
 
@@ -24,6 +23,8 @@ function matchCommand(transcript){
 
       if(cleaned.includes(normalize(phrase))){
 
+        console.log("VOICE COMMAND MATCHED:", phrase)
+
         cmd.action()
 
         return true
@@ -34,6 +35,8 @@ function matchCommand(transcript){
 
   }
 
+  console.log("No command matched:", cleaned)
+
   return false
 
 }
@@ -42,11 +45,28 @@ function processTranscript(transcript){
 
   const cleaned = normalize(transcript)
 
-  if(!cleaned.includes(wakeWord)) return
+  console.log("VOICE HEARD:", cleaned)
 
-  const commandPart = cleaned.replace(wakeWord,"").trim()
+  if(
+    !cleaned.includes(wakeWord) &&
+    !cleaned.includes("rival")
+  ){
+    return
+  }
 
-  if(!commandPart) return
+  const commandPart = cleaned
+    .replace(wakeWord,"")
+    .replace("rival","")
+    .trim()
+
+  if(!commandPart){
+
+    console.log("Wake word detected")
+
+    return
+  }
+
+  console.log("Processing command:", commandPart)
 
   matchCommand(commandPart)
 
@@ -60,15 +80,11 @@ function createRecognition(){
 
   if(!SpeechRecognition){
 
-    console.warn("Speech recognition not supported on this browser")
-
-    supported = false
+    console.warn("SpeechRecognition not supported")
 
     return null
 
   }
-
-  supported = true
 
   const rec = new SpeechRecognition()
 
@@ -101,7 +117,7 @@ function createRecognition(){
 
       }catch(e){
 
-        console.warn("Restart failed",e)
+        console.warn("Restart failed:",e)
 
       }
 
@@ -130,7 +146,7 @@ const WakeWordEngine = {
   start(){
 
     if(!recognition) return
-    if(!supported) return
+
     if(isRunning) return
 
     isRunning = true
@@ -139,9 +155,11 @@ const WakeWordEngine = {
 
       recognition.start()
 
+      console.log("Voice engine started")
+
     }catch(e){
 
-      console.warn("Voice start error",e)
+      console.warn("Voice start error:",e)
 
     }
 
@@ -157,9 +175,11 @@ const WakeWordEngine = {
 
       recognition.stop()
 
+      console.log("Voice engine stopped")
+
     }catch(e){
 
-      console.warn("Voice stop error",e)
+      console.warn("Voice stop error:",e)
 
     }
 
@@ -171,11 +191,7 @@ const WakeWordEngine = {
 
     wakeWord = normalize(word)
 
-  },
-
-  isSupported(){
-
-    return supported
+    console.log("Wake word set to:", wakeWord)
 
   }
 
