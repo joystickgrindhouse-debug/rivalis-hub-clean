@@ -98,31 +98,42 @@ export default function VoiceProvider({ children, userProfile }) {
 
   useEffect(() => {
 
-    const handleTap = (e) => {
+    const tapCounter = useRef(0)
+const tapTimer = useRef(null)
 
-      if (e.clientX < 120 && e.clientY < 120) {
+useEffect(()=>{
 
-        const newCount = tapCount + 1
-        setTapCount(newCount)
+  const handleTap = (e)=>{
 
-        if (newCount === 5) {
+    if(e.clientX < 120 && e.clientY < 120){
 
-          setVoiceActive(prev => !prev)
-          setTapCount(0)
+      tapCounter.current += 1
 
-        }
+      if(tapTimer.current){
+        clearTimeout(tapTimer.current)
+      }
 
-        setTimeout(() => setTapCount(0), 1000)
+      tapTimer.current = setTimeout(()=>{
+        tapCounter.current = 0
+      },1000)
+
+      if(tapCounter.current >= 5){
+
+        setVoiceActive(prev => !prev)
+
+        tapCounter.current = 0
 
       }
 
     }
 
-    window.addEventListener("click", handleTap)
+  }
 
-    return () => window.removeEventListener("click", handleTap)
+  window.addEventListener("click",handleTap)
 
-  }, [tapCount])
+  return ()=>window.removeEventListener("click",handleTap)
+
+},[])
 
   return (
 
