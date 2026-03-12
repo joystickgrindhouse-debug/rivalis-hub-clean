@@ -1,30 +1,30 @@
-```jsx
+
 import React from "react";
 
 export default function Golf(){
 
-  return (
+return(
 
-    <div style={{ padding: "20px", color: "#fff" }}>
+<div
+style={{
+width:"100%",
+height:"100%",
+background:"#000"
+}}
+>
 
-      <h1>Rivalis Golf</h1>
+<iframe
+src="/golf/index.html"
+title="Rivalis Golf"
+style={{
+width:"100%",
+height:"100vh",
+border:"none"
+}}
+/>
 
-      <p>Launching Rivalis Golf...</p>
+</div>
 
-      <iframe
-        src="/golf-app/index.html"
-        title="Rivalis Golf"
-        style={{
-          width: "100%",
-          height: "80vh",
-          border: "none",
-          borderRadius: "12px"
-        }}
-      />
-
-    </div>
-
-  );
+)
 
 }
-```
