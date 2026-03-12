@@ -1,3 +1,4 @@
+```jsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { auth } from "../firebase.js";
@@ -166,7 +167,7 @@ export default function Navbar({ user, userProfile, theme, cycleTheme }) {
                 Leaderboard
               </Link>
 
-              {userProfile?.role === "admin" && (
+              {userProfile?.isAdmin && (
                 <Link
                   to="/admin-control"
                   onClick={closeDropdown}
@@ -199,3 +200,4 @@ export default function Navbar({ user, userProfile, theme, cycleTheme }) {
   );
 
 }
+```
