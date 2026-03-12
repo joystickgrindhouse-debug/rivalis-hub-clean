@@ -1,3 +1,4 @@
+```jsx
 import React, { useEffect, useState, lazy, Suspense } from "react";
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { auth, db, authReady } from "./firebase.js";
@@ -35,6 +36,9 @@ const MerchShop = lazy(() => import("./views/MerchShop.jsx"));
 const BoxingArena = lazy(() => import("./boxing/pages/Arena.tsx"));
 const Subscription = lazy(() => import("./views/Subscription.jsx"));
 const FitnessDashboard = lazy(() => import("./views/FitnessDashboard.jsx"));
+
+/* NEW GAME */
+const Golf = lazy(() => import("./views/Golf.jsx"));
 
 export default function App(){
 
@@ -282,6 +286,16 @@ export default function App(){
 
               <Route path="/boxing" element={<ProtectedRoute user={user} userProfile={userProfile}><BoxingArena/></ProtectedRoute>} />
 
+              {/* NEW RIVALIS GOLF MODE */}
+              <Route
+                path="/golf"
+                element={
+                  <ProtectedRoute user={user} userProfile={userProfile}>
+                    <Golf user={user} userProfile={userProfile}/>
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/admin-control"
                 element={
@@ -338,3 +352,4 @@ const botStyles = {
   }
 
 };
+```
